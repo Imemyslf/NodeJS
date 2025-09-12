@@ -9,12 +9,12 @@ const MongoDBStore = require("connect-mongodb-session")(session);
 const errorController = require("./controllers/error");
 const User = require("./models/user");
 
-const MONGO_URI =
+const MONGODB_URI =
   "mongodb+srv://studygrind96_db_user:FbAFACl8H2EWYZF9@cluster0.ri3r904.mongodb.net/shop?appName=Cluster0";
 
 const app = express();
 const store = new MongoDBStore({
-  uri: MONGO_URI,
+  uri: MONGODB_URI,
   collection: "sessions",
 });
 
@@ -29,7 +29,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   session({
-    secret: "my-secret",
+    secret: "my secret",
     resave: false,
     saveUninitialized: false,
     store: store,
@@ -40,11 +40,12 @@ app.use((req, res, next) => {
   if (!req.session.user) {
     return next();
   }
-  User.findById(req.session.user._id).then((user) => {
-    req.user = user;
-    console.log("Req. user", req.user);
-    next();
-  });
+  User.findById(req.session.user._id)
+    .then((user) => {
+      req.user = user;
+      next();
+    })
+    .catch((err) => console.log(err));
 });
 
 app.use("/admin", adminRoutes);
@@ -54,7 +55,7 @@ app.use(authRoutes);
 app.use(errorController.get404);
 
 mongoose
-  .connect(MONGO_URI)
+  .connect(MONGODB_URI)
   .then((result) => {
     User.findOne().then((user) => {
       if (!user) {
